@@ -19,8 +19,7 @@ for animal in doc_ref.get():
       animal.set({
           u'image': response.json()['results'][0]
       });
-
-    print('---------')
+      print('---------')
 
 
 
