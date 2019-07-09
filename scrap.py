@@ -71,7 +71,7 @@ url = 'https://craft.co/the-coca-cola-company/locations?page=5'
 response = requests.get(url)
 
 soup = BeautifulSoup(response.text, "html.parser")
-geolocator = GoogleV3(api_key="AIzaSyAygZKcd5P_BUkDjdLbHrnUTjJOis289SE")
+geolocator = GoogleV3(api_key="HEHE")
 
 companies = db.collection(u'companies')
 targetCompany = companies.where(u'name', u'==', u'Coca-Cola').get()
