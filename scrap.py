@@ -3,6 +3,7 @@ import firebase_admin
 from bs4 import BeautifulSoup
 from firebase_admin import firestore
 from firebase_admin import credentials
+from geopy.geocoders import GoogleV3
 
 cred = credentials.Certificate('./doomsday-244617-7c2e2ed9100f.json')
 firebase_admin.initialize_app(cred)
@@ -64,3 +65,41 @@ for row in soup.select('table tr'):
             u'status': status,
         })
     print('----')
+
+url = 'https://craft.co/the-coca-cola-company/locations?page=5'
+
+response = requests.get(url)
+
+soup = BeautifulSoup(response.text, "html.parser")
+geolocator = GoogleV3(api_key="AIzaSyAygZKcd5P_BUkDjdLbHrnUTjJOis289SE")
+
+companies = db.collection(u'companies')
+targetCompany = companies.where(u'name', u'==', u'Coca-Cola').get()
+branches = []
+companyRef = ''
+
+for company in targetCompany:
+  companyRef = companies.document(company.id)
+  print(company.to_dict()['branches'])
+  branches = company.to_dict()['branches']
+
+for div in soup.select('.locations-list .row'):
+    addressContainers = div.select('.col-xs-6 .location')
+    for address in addressContainers:
+        addressName = address.select('.location__address')[0]
+        city = address.select('.location__city')[0]
+        country = address.select('.location__country')[0]
+        fullAddress = addressName.text.strip() + ' ' +city.text.strip() + ' ' + country.text.strip()
+        print(fullAddress)
+
+        location = geolocator.geocode(fullAddress)
+        if(location):
+          branches.append(firestore.GeoPoint(location.latitude, location.longitude))
+          print((location.latitude, location.longitude))
+        print('----')
+
+companyRef.set({
+  u'branches': branches,
+}, merge=True)
+print('Branches updated')
+ 
